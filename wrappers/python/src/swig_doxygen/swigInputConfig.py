@@ -409,6 +409,8 @@ UNITS = {
 ("DrudeForce", "setParticleParameters") : (None, (None, None, None, None, None, None, "unit.elementary_charge", "unit.nanometer**3", None, None)),
 ("DrudeForce", "getNumScreenedPairs") : (None, ()),
 ("DrudeForce", "getScreenedPairParameters") : (None, ()),
+("ArrowForce", "addParticle") : (None, ()),
+("ArrowForce", "getNumParticles") : (None, ()),
 ("GBSAOBCForce", "addParticle") : (None, ("unit.elementary_charge", "unit.nanometer", None)),
 ("GBSAOBCForce", "getParticleParameters") : (None, ("unit.elementary_charge", "unit.nanometer", None)),
 ("GBSAOBCForce", "setParticleParameters") : (None, (None, "unit.elementary_charge", "unit.nanometer", None)),

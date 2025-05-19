@@ -107,7 +107,7 @@ void testWater() {
     context.setVelocitiesToTemperature(300.0);
     State state = context.getState(State::Energy);
     double initialEnergy;
-    int numSteps = 1000;
+    int numSteps = 10000;
     double maxNorm = 1.0;
     try {
         if (platform.getPropertyValue(context, "Precision") != "double") {
@@ -124,6 +124,7 @@ void testWater() {
         else
             ASSERT_EQUAL_TOL(initialEnergy, state.getPotentialEnergy()+state.getKineticEnergy(), 0.01);
         const vector<Vec3>& force = state.getForces();
+        std::cout << "Step " << i << "Force[0]: " << force[0] << "\n";
         double norm = 0.0;
         for (int j = 1; j < (int) force.size(); j += 5)
             norm += sqrt(force[j].dot(force[j]));
