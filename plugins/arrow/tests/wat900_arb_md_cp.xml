@@ -1,0 +1,167 @@
+<Configuration>
+<OutputStreams>
+<ProcIDs />
+</OutputStreams>
+<ConfigureInteractions>
+<ForceField Title="933">
+        <FFConfig>Input/FFConfig.xml</FFConfig>
+        <Settings>
+              <Param Title="RTabulated">10.0</Param>
+              <Param Title="NTabulated">10000</Param>
+              <Param Title="EqTolerance">0.0001</Param>
+              <Param Title="PolarConvergenceTol">0.0001</Param>
+              <Param Title="PolarConvergenceTolPME">0.0</Param>
+              <Param Title="PolarEquilibrationMaxSteps">30</Param>
+        </Settings>
+</ForceField>
+<Volume>
+<Lx>32.0</Lx>
+<Ly>32.0</Ly>
+<Lz>32.0</Lz>
+</Volume>
+<Boundary>
+<BoundX>PERIODIC</BoundX>
+<BoundY>PERIODIC</BoundY>
+<BoundZ>PERIODIC</BoundZ>
+</Boundary>
+<LongRange>
+        <RCutOff>9.0</RCutOff>
+        <RSwitch>9.0</RSwitch>
+        <RCutOffVdW>9.0</RCutOffVdW>
+        <RSwitchVdW>9.0</RSwitchVdW>
+        <dRCutOff>2.0</dRCutOff>
+        <NLstRefresh>100</NLstRefresh>
+  <NRecalc>
+        <Shell R="9.0">5</Shell>
+        <Shell R="8.0">3</Shell>
+        <Shell R="7.0">2</Shell>
+  </NRecalc>
+  <LRangeCoulomb Type="PME">
+     <Settings>
+          <Param Title="GridFragmentationX">32</Param>
+          <Param Title="GridFragmentationY">32</Param>
+          <Param Title="GridFragmentationZ">32</Param>
+          <Param Title="BSplineOrder">5</Param>
+          <Param Title="Tolerance">5</Param>
+          <Param Title="DielConstRF">1000000000000.0</Param>
+     </Settings>
+  </LRangeCoulomb>
+  <LRangeVdW>
+      <CorrectEnergy>true</CorrectEnergy>
+      <CorrectPressure>true</CorrectPressure>
+  </LRangeVdW>
+</LongRange>
+<Constraints>
+   <Tolerance>0.001</Tolerance>
+   <ConstrGeom>EquilibriumGeom</ConstrGeom>
+</Constraints>
+</ConfigureInteractions>
+<Topology>
+<MoleculeDefinition Title="HOH">
+  <StructureType>SINGLERES</StructureType>
+    <StructureDefinition>
+      <Instance Title="StateA">
+         <TopologySource>STRUCT</TopologySource>
+            <TopologyFiles>
+               <File Type="HIN">Input/HIN/HOH_water_QMPFF3-vb-ct.hin</File>
+            </TopologyFiles>
+            <StructureFiles>
+               <File Descr="MolTemplate" Type="HIN">Input/HIN/HOH_water_QMPFF3-vb-ct.hin</File>
+            </StructureFiles>
+            <StructureSettings>
+                <GenerateChargeGroups>AUTO</GenerateChargeGroups>
+                <ConstrainBonds>false</ConstrainBonds>
+                <ConstrainAngles>false</ConstrainAngles>
+                <ConstrainTorsions>false</ConstrainTorsions>
+           </StructureSettings>
+      </Instance>
+   </StructureDefinition>
+</MoleculeDefinition>
+</Topology>
+<MolecularSystem ForcePlacement="true">
+<SystemState Title="SystemA">
+  <Load>
+     <Molecules>
+        <Molecule Instance="StateA" Title="HOH" />
+     </Molecules>
+     <StructureFiles>
+        <File Type="HIN">Input/HIN/900H2O.hin</File>
+     </StructureFiles>
+  </Load>
+</SystemState>
+</MolecularSystem>
+<GroupsDefinition>
+</GroupsDefinition>
+<TaskSequence>
+<Task SeqID="3" Type="MD">
+<Settings>
+ <Param Title="TimeStep">0.002</Param>
+ <Param Title="FastForceStepDivider">8</Param>
+ <Param Title="NumIterations">25000</Param>
+ <Param Title="NumIterEquilibration">5000</Param>
+<!-- <Param Title="NumPIMDReplicas">1</Param> -->
+</Settings>
+<ConfigureAlgorithms>
+<Algorithm Type="INIT_VELOCITY">
+   <Settings>
+      <Param Title="RefTemp">298</Param>
+      <Param Title="Seed">2018</Param>
+   </Settings>
+   <FunctionalGroups>
+      <Group>SYSTEM</Group>
+   </FunctionalGroups>
+</Algorithm>
+<Algorithm Type="THERMOSTAT">
+   <Settings>
+      <Param Title="Type">Nose-Hoover</Param>
+      <Param Title="RefTemp">298</Param>
+      <Param Title="RelaxTime">1.0</Param>
+      <Param Title="NChain">6</Param>
+   </Settings>
+   <FunctionalGroups>
+       <Group>SYSTEM</Group>
+   </FunctionalGroups>
+</Algorithm>
+<Algorithm Type="BAROSTAT">
+   <Settings>
+      <Param Title="Type">Berendsen</Param>
+      <Param Title="RefPressure">1.0</Param>
+      <Param Title="RelaxTime">0.5</Param>
+      <Param Title="Compressibility">4.5e-5</Param>
+   </Settings>
+   <FunctionalGroups />
+</Algorithm>
+</ConfigureAlgorithms>
+<ConsoleOutput Do="True">
+<Output Frequency="10" Mode="WATERFALL" NRows="100" Screen="SYSTEM">
+    <Item Param="Step" Title="ID" />
+    <Item FunctionalGroup="SYSTEM" Param="Temp" Title="Temp" />
+    <Item FunctionalGroup="SYSTEM" Param="EnrgPot" Title="EnrgPot" />
+    <Item FunctionalGroup="SYSTEM" Param="Pressure" Title="Pressure" />
+    <Item FunctionalGroup="SYSTEM" Param="Density" Title="Density" />
+</Output>
+</ConsoleOutput>
+<FileOutput OutputFolder="./Output">
+<Output DataType="ENE" Frequency="10">
+   <Settings>
+        <Param Title="Time">Time</Param>
+        <Param Title="Temp">Temp</Param>
+        <Param Title="EnrgPot">EnrgPot</Param>
+        <Param Title="Density">Density</Param>
+   </Settings>
+   <FunctionalGroups>
+        <Group>SYSTEM</Group>
+   </FunctionalGroups>
+</Output>
+<Output DataType="TRR" Frequency="100">
+<Settings>
+        <Param Title="RecordGRO">true</Param>
+</Settings>
+<FunctionalGroups>
+        <Group>SYSTEM</Group>
+</FunctionalGroups>
+</Output>
+</FileOutput>
+</Task>
+</TaskSequence>
+</Configuration>

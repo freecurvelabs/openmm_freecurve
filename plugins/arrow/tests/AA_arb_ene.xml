@@ -1,0 +1,137 @@
+<Configuration>
+   <ConfigureInteractions>
+      <ForceField Title="1046">
+         <!-- <FFConfig>/srv/data/permanent/leonidp/MD/test_run_ti_solvation/INPUT/FFConfig.xml</FFConfig> -->
+         <FFConfig>Input/FFConfig.xml</FFConfig> 
+      <Settings>
+            <Param Title="RTabulated">10.0</Param>
+         <Param Title="EqTolerance">0.000001</Param>
+         <Param Title="NTabulated">10000</Param>
+         <Param Title="PolarConvergenceTol">0.0</Param>
+         <Param Title="PolarConvergenceTolPME">0.0</Param>
+         <Param Title="PolarEquilibrationMaxSteps">150</Param>
+         <Param Title="OpenMPThreads">1</Param>
+         </Settings>
+      </ForceField>
+   <Volume>
+         <Lx>32.0</Lx>
+      <Ly>32.0</Ly>
+      <Lz>32.0</Lz>
+      </Volume>
+   <Boundary>
+         <BoundX>PERIODIC</BoundX>
+      <BoundY>PERIODIC</BoundY>
+      <BoundZ>PERIODIC</BoundZ>
+      </Boundary>
+   <LongRange>
+         <RCutOff>9</RCutOff>
+      <RSwitch>9</RSwitch>
+      <RCutOffVdW>9</RCutOffVdW>
+      <RSwitchVdW>9</RSwitchVdW>
+      <RCutOffNN>5.5</RCutOffNN>
+      <RSwitchNN>5.5</RSwitchNN>
+      <dRCutOff>2.0</dRCutOff>
+      <NLstRefresh>100</NLstRefresh>
+      <NRecalc>
+            <Shell R="9.0">5</Shell>
+         <Shell R="8.0">3</Shell>
+         <Shell R="7.0">2</Shell>
+         </NRecalc>
+      <LRangeCoulomb Type="PME">
+            <Settings>
+               <Param Title="GridFragmentationX">32</Param>
+            <Param Title="GridFragmentationY">32</Param>
+            <Param Title="GridFragmentationZ">32</Param>
+            <Param Title="BSplineOrder">5</Param>
+            <Param Title="Tolerance">5</Param>
+            <Param Title="DielConstRF">1000000000000.0</Param>
+            </Settings>
+         </LRangeCoulomb>
+      <LRangeVdW>
+            <CorrectEnergy>false</CorrectEnergy>
+         <CorrectPressure>false</CorrectPressure>
+         </LRangeVdW>
+      </LongRange>
+   <Constrains>
+         <Tolerance>0.01</Tolerance>
+      <ConstrGeom>EquilibriumGeom</ConstrGeom>
+      </Constrains>
+   <Constraints>
+         <Tolerance>0.01</Tolerance>
+      <ConstrGeom>EquilibriumGeom</ConstrGeom>
+      </Constraints>
+   </ConfigureInteractions>
+<Topology>
+      <MoleculeDefinition Title="mo1">
+         <StructureType>SINGLERES</StructureType>
+      <StructureDefinition>
+            <Instance Title="StateA">
+               <TopologySource>STRUCT</TopologySource>
+            <TopologyFiles>
+                  <File Type="HIN">Input/HIN/AA.hin</File>
+               </TopologyFiles>
+            <StructureFiles>
+                  <File Descr="MolTemplate" Type="HIN">Input/HIN/AA.hin</File>
+               </StructureFiles>
+            <StructureSettings>
+                  <GenerateChargeGroups>RESIDUE</GenerateChargeGroups>
+               <ConstrainBonds>false</ConstrainBonds>
+               <ConstrainAngles>false</ConstrainAngles>
+               <ConstrainTorsions>false</ConstrainTorsions>
+               </StructureSettings>
+            </Instance>
+         </StructureDefinition>
+      </MoleculeDefinition>
+   </Topology>
+<MolecularSystem>
+      <SystemState Title="System">
+         <Load>
+            <Molecules>
+               <Molecule Instance="StateA" Title="mo1" />
+            </Molecules>
+         <StructureFiles>
+               <File Type="HIN">Input/HIN/AA.hin</File>
+            </StructureFiles>
+         </Load>
+      </SystemState>
+   </MolecularSystem>
+<GroupsDefinition>
+      <Group Title="Water" Type="UNITED">
+         <Set>
+            <LogicalItems>
+               <Item>mo1:</Item>
+            </LogicalItems>
+         </Set>
+      </Group>
+   </GroupsDefinition>
+<TaskSequence>
+      <Task SeqID="1" Type="MinEnergy">
+         <Settings>
+            <Param Title="Method">SteepestDescent</Param>
+         <Param Title="ConvergenceAccuracy">0.00000001</Param>
+         <Param Title="NumIterations">1</Param>
+         </Settings>
+      <ConfigureAlgorithms>
+            <Algorithm Type="FFNN_ADJUSTMENT">
+               <Settings>
+                  <Param Title="BatchSize">50000</Param>
+               <Param Title="NNTargetGroup">Bonded12</Param>
+               <Param Title="NNMapFile">Input/AA_NN/NN_200K_RAND_28D_bonded12/FFNNConfigFloat.xml</Param>
+               </Settings>
+            <FunctionalGroups>
+                  <Group>SYSTEM</Group>
+               </FunctionalGroups>
+            </Algorithm>
+      </ConfigureAlgorithms>
+      <FileOutput OutputFolder="./Output" />
+      <ConsoleOutput Do="True">
+            <Output Frequency="1" Mode="WATERFALL">
+               <Item Param="Step" Title="ID" />
+            <Item FunctionalGroup="SYSTEM" Param="EnrgPot" Title="EnrgPot" />
+            <Item FunctionalGroup="SYSTEM" Param="EnrgNN" Title="EnrgNN" />
+            <Item FunctionalGroup="SYSTEM" Param="EnrgNNBnd" Title="EnrgNNBnd" />
+            </Output>
+         </ConsoleOutput>
+      </Task>
+   </TaskSequence>
+</Configuration>
