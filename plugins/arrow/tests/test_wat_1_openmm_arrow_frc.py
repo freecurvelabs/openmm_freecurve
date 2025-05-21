@@ -26,7 +26,8 @@ c = openmm.Vec3( 0.0,  0.0, 32.0) * 0.1
 
 # %%
 integrator = openmm.VerletIntegrator(1.0)
-platform = openmm.Platform.getPlatformByName("Reference")
+#platform = openmm.Platform.getPlatformByName("Reference")
+platform = openmm.Platform.getPlatformByName("CUDA")
 
 context = openmm.Context(system, integrator, platform)
 context.setPositions(positions)

@@ -12,7 +12,7 @@
 
 # The source is organized into subdirectories, but we handle them all from
 # this CMakeLists file rather than letting CMake visit them as SUBDIRS.
-SET(OPENMM_SOURCE_SUBDIRS .)
+SET(OPENMM_SOURCE_SUBDIRS . )
 SET(ARBALEST_ROOT ${CMAKE_SOURCE_DIR}/../ARBALEST)
 SET(FFTW_DIR  ${CMAKE_SOURCE_DIR}/../FFTW_LIBS_SHARED)
 

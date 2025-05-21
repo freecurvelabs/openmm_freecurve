@@ -6,13 +6,20 @@
  * -------------------------------------------------------------------------- */
 
 #include "ReferencePlatform.h"
+#include "CudaPlatform.h"
+#include "CudaContext.h"
+
 #include "CommonArrowKernels.h"
 #include "CommonArrowKernelSources.h"
 #include "openmm/internal/ContextImpl.h"
 #include "openmm/common/BondedUtilities.h"
 #include "openmm/common/ComputeForceInfo.h"
 #include "openmm/common/ContextSelector.h"
+#include "openmm/common/CommonKernels.h"
 #include "openmm/common/IntegrationUtilities.h"
+//#include "openmm/cuda/CudaPlatform.h"
+//#include "openmm/cuda/CudaContext.h"
+//#include "openmm/cuda/CudaContext.h"
 #include "CommonKernelSources.h"
 #include "SimTKOpenMMRealType.h"
 #include <set>
@@ -177,8 +184,8 @@ void CommonCalcArrowForceKernel::initialize(const System& system, const ArrowFor
         //            std::string sCurConfigFile = CmdParams.sConfigFile;
         //            cout << "Arbalest Config file " << sCurConfigFile << std::endl;
         //        } 
-        //bool useGpu = false;
-        bool useGpu = true; 
+        bool useGpu = false;
+        //bool useGpu = true; 
 
         pSysLdr = std::make_shared< SystemLoading::CSystemLoader >(useGpu);
         // SystemLoading::CSystemLoader SysLdr(useGpu);
@@ -225,8 +232,11 @@ void CommonCalcArrowForceKernel::initialize(const System& system, const ArrowFor
                 pSimEnvGpu->EnableSynchronizationGPUvsCPU(true);
             }
         }
+        SimController.m_pTaskContainer->Initialize(SimController.m_pSimRefs, SimController.m_pSimEnv);
 		SimController.PreLaunchSimulation(); // Moving Simulation setup here    
 		
+        std::cout << "CommonCalcArrowForceKernel::initialize() before SimController.m_pSimEnv->OnTaskStarted() line 231 " << std::endl; 
+
 		// Move functions from CEnergyValuation::Launch()
 		// Notify objects about beginning of the task
 		SimController.m_pSimEnv->OnTaskStarted();  
@@ -250,16 +260,51 @@ void CommonCalcArrowForceKernel::initialize(const System& system, const ArrowFor
 }
 
 
+//static vector<Vec3>& extractForces(ContextImpl & context) {
+//   CudaPlatform::PlatformData* data = reinterpret_cast<CudaPlatform::PlatformData*>(context.getPlatformData());
+//   return *data->forces;
+//}
 
-static vector<Vec3>& extractForces(ContextImpl & context) {
-   ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
-   return *data->forces;
+
+void CommonCalcArrowForceKernel::setForces(vector<Vec3>& forces_loc, ContextImpl& context) {
+
+    std::string platform_name = context.getPlatform().getName();
+    int natoms = context.getSystem().getNumParticles();
+
+    if (platform_name == "Reference" || platform_name == "CPU")
+    {
+        ReferencePlatform::PlatformData *data = reinterpret_cast<ReferencePlatform::PlatformData *>(context.getPlatformData());
+        *(data->forces) = forces_loc;
+    }
+    else if (platform_name == "CUDA")
+    {
+        ContextSelector selector(cc);
+        long long *force = (long long *)cc.getPinnedBuffer();
+        cc.getLongForceBuffer().download(force);
+        const vector<int> &order = cc.getAtomIndex();
+        int numParticles = context.getSystem().getNumParticles();
+        int paddedNumParticles = cc.getPaddedNumAtoms();
+        // forces.resize(numParticles);
+        double scale = (double)0x100000000LL;
+        for (int i = 0; i < numParticles; ++i)
+        {
+            force[i]                          = forces_loc[order[i]][0] * scale;
+            force[i + paddedNumParticles]     = forces_loc[order[i]][1] * scale;
+            force[i + paddedNumParticles * 2] = forces_loc[order[i]][2] * scale;
+        }
+        cc.getLongForceBuffer().upload(force);
+    }
+    else
+    {
+        printf(" CommonCalcArrowForceKernel::setForces() - Unsupported platform: %s \n", platform_name.c_str());
+        throw OpenMMException("CommonCalcArrowForceKernel::execute() - Unsupported platform");
+    }
 }
 
 bool bFirstTimePairs = true;
 
 double CommonCalcArrowForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
-    //cout << "ReferenceCalcArrowForceKernel::execute()" << std::endl;
+    cout << "CommonCalcArrowForceKernel::execute()" << std::endl;
     SimulationCore::CSimulationEnvironment* pEnv = pSysLdr->GetSimulationenvironment();
 
     bool bRes = copyCrdFromContextToArbalest(context, pEnv);
@@ -300,22 +345,27 @@ double CommonCalcArrowForceKernel::execute(ContextImpl& context, bool includeFor
 
     SimulationCore::FORCEVEC3* pFrc = pEnv->m_pCmptAtoms->m_pFtotal;
 
-    double energy = 0;
-    vector<Vec3>& forces = extractForces(context);
-    int natoms = forces.size();
+    // printf(" CommonCalcArrowForceKernel::execute() line 306  pFrc[0].x = %f ", FORCE_TO_DBL(pFrc[0].x));
+    // printf("pFrc[0].y = %f ", FORCE_TO_DBL(pFrc[0].y)); 
+    // printf("pFrc[0].z = %f \n", FORCE_TO_DBL(pFrc[0].z));     
 
+    double energy = 0;
+
+    std::string platform_name = context.getPlatform().getName();
+    int natoms = context.getSystem().getNumParticles();
+
+    vector<Vec3> forces_loc(natoms);
     for (int i = 0; i < natoms; i++)
     {
-        forces[i][0] = FORCE_TO_DBL( pFrc[i].x ) * 41.84 * scale_force;
-        forces[i][1] = FORCE_TO_DBL( pFrc[i].y ) * 41.84 * scale_force;
-        forces[i][2] = FORCE_TO_DBL( pFrc[i].z ) * 41.84 * scale_force;
+        forces_loc[i][0] = FORCE_TO_DBL( pFrc[i].x ) * 41.84 * scale_force;
+        forces_loc[i][1] = FORCE_TO_DBL( pFrc[i].y ) * 41.84 * scale_force;
+        forces_loc[i][2] = FORCE_TO_DBL( pFrc[i].z ) * 41.84 * scale_force;
     }
 
-    // Potential energy in kJ/mol - seems to be defaul in OpenMM ??
-    energy = pEnv->m_pCmptMatrix->m_pfCalculatedValues[0][SimulationCore::ECalculatedValues::eEnergPot]*4.184*scale_force;
+    setForces(forces_loc, context);
 
-    // std::cout << " ReferenceCalcArrowForceKernel::execute() : Potential Energy =" <<  energy/4.184 << "  kcal/mol " << std::endl; 
-	// std::cout << " ReferenceCalcArrowForceKernel::execute() : Potential Energy =" <<  energy << "  kJ/mol " << std::endl;   
+    // Potential energy in kJ/mol in OpenMM
+    energy = pEnv->m_pCmptMatrix->m_pfCalculatedValues[0][SimulationCore::ECalculatedValues::eEnergPot]*4.184*scale_force; 
     return energy;
 }
 

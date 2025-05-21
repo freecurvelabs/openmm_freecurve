@@ -146,7 +146,7 @@ void ReferenceCalcArrowForceKernel::initialize(const System& system, const Arrow
     this->scale_force = force.scale_force;
     std::cout << "Initialize Arbalest structures with config file: " << force.getArbalestConfig() << std::endl;
 
-    int argc = 3;
+    int argc = 5;
     char** argv = new char* [argc];
 
     char argv_2[256];
@@ -155,8 +155,8 @@ void ReferenceCalcArrowForceKernel::initialize(const System& system, const Arrow
     argv[1] = "--config";
     strcpy(argv_2, force.getArbalestConfig().c_str());
     argv[2] = argv_2;
-//    argv[3] = "--gpu";  // For GPU support - to move to CudaArrowKernel
-//    argv[4] = "1";
+    argv[3] = "--gpu";  // For GPU support - to move to CudaArrowKernel
+    argv[4] = "1";
 
     int nMyID = -1, nNumProcs = -1;
     std::string strProcTitle;
@@ -299,6 +299,10 @@ double ReferenceCalcArrowForceKernel::execute(ContextImpl& context, bool include
     }
 
     SimulationCore::FORCEVEC3* pFrc = pEnv->m_pCmptAtoms->m_pFtotal;
+
+    printf(" ReferenceCalcArrowForceKernel::execute() line 303  pFrc[0].x = %f ", FORCE_TO_DBL(pFrc[0].x));
+    printf("pFrc[0].y = %f ", FORCE_TO_DBL(pFrc[0].y)); 
+    printf("pFrc[0].z = %f \n", FORCE_TO_DBL(pFrc[0].z));    
 
     double energy = 0;
     vector<Vec3>& forces = extractForces(context);

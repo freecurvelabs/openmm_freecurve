@@ -35,8 +35,10 @@ void testWaterDimer() {
     std::cout << " testWaterDimer() pt 1 " << std::endl;
     //arrow->setArbalestConfig("wat_2_arrow_rerun_conf_templ_oo_R5.xml");
     arrow->setArbalestConfig("wat_2_arrow_calc_ene.xml");
+    std::cout << " testWaterDimer() pt 2 " << std::endl;
 
     system.addForce(arrow);
+    std::cout << " testWaterDimer() pt 3 " << std::endl;
 
     vector<Vec3> positions(6); // in nm
     Vec3 a, b, c;              // in nm
@@ -54,13 +56,17 @@ void testWaterDimer() {
     VerletIntegrator integ(1.0);
 
     Context context(system, integ, platform);
+    std::cout << " testWaterDimer() pt 4 " << std::endl;
 
     context.setPositions(positions);
     context.setPeriodicBoxVectors(a, b, c);
 
+    std::cout << " testWaterDimer() pt 5 " << std::endl;
     State state = context.getState(State::Energy | State::Forces);
+    std::cout << " testWaterDimer() pt 6 " << std::endl;
 
     double ene_pot_arrow = state.getPotentialEnergy();
+    std::cout << " testWaterDimer() pt 7 " << std::endl;
     std::vector<OpenMM::Vec3> forces = state.getForces();
 
     std::cout << "Computed Arrow Energy: " << ene_pot_arrow << std::endl;
@@ -69,7 +75,6 @@ void testWaterDimer() {
     {
         std::cout << boost::format("%3d %10.5f %10.5f %10.5f") % i % forces[i][0] % forces[i][1] % forces[i][2] << std::endl ;
     }
-
 }
 
 void setupKernels(int argc, char* argv[]);

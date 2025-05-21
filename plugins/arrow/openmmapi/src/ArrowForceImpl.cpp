@@ -66,7 +66,7 @@ void ArrowForceImpl::initialize(ContextImpl& context) {
 }
 
 double ArrowForceImpl::calcForcesAndEnergy(ContextImpl& context, bool includeForces, bool includeEnergy, int groups) {
-    if ((groups&(1<<owner.getForceGroup())) != 0)
+    if ((groups&(1<<owner.getForceGroup())) != 0) 
         return kernel.getAs<CalcArrowForceKernel>().execute(context, includeForces, includeEnergy);
     return 0.0;
 }

@@ -66,6 +66,13 @@ public:
     */
     bool copyCrdFromContextToArbalest(ContextImpl& context, SimulationCore::CEnvironmentReplica* pEnvReplica);
 
+    /**
+     * Set forces to the context
+     *
+     * @param forces      the ArrowForce to copy the parameters from
+     */
+    void setForces(vector<Vec3>& forces, ContextImpl& context);
+
 private:
     ComputeContext& cc;
     ComputeArray particleParams;
