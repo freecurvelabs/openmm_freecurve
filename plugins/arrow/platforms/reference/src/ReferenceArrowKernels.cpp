@@ -300,19 +300,25 @@ double ReferenceCalcArrowForceKernel::execute(ContextImpl& context, bool include
 
     SimulationCore::FORCEVEC3* pFrc = pEnv->m_pCmptAtoms->m_pFtotal;
 
-    printf(" ReferenceCalcArrowForceKernel::execute() line 303  pFrc[0].x = %f ", FORCE_TO_DBL(pFrc[0].x));
-    printf("pFrc[0].y = %f ", FORCE_TO_DBL(pFrc[0].y)); 
-    printf("pFrc[0].z = %f \n", FORCE_TO_DBL(pFrc[0].z));    
+    //printf(" ReferenceCalcArrowForceKernel::execute() line 303  pFrc[0].x = %f ", FORCE_TO_DBL(pFrc[0].x));
+    //printf("pFrc[0].y = %f ", FORCE_TO_DBL(pFrc[0].y)); 
+    //printf("pFrc[0].z = %f \n", FORCE_TO_DBL(pFrc[0].z));    
 
     double energy = 0;
     vector<Vec3>& forces = extractForces(context);
     int natoms = forces.size();
 
+    //for( int i = 0; i < 2; i++)
+    //{
+    //    printf(" ReferenceCalcArrowForceKernel::execute() line 311  forces[%d] = %f %f %f \n", i, forces[i][0], forces[i][1], forces[i][2]);
+    //}
+    //printf(" ReferenceCalcArrowForceKernel::execute() line 315 \n" );
+
     for (int i = 0; i < natoms; i++)
     {
-        forces[i][0] = FORCE_TO_DBL( pFrc[i].x ) * 41.84 * scale_force;
-        forces[i][1] = FORCE_TO_DBL( pFrc[i].y ) * 41.84 * scale_force;
-        forces[i][2] = FORCE_TO_DBL( pFrc[i].z ) * 41.84 * scale_force;
+        forces[i][0] += FORCE_TO_DBL( pFrc[i].x ) * 41.84 * scale_force;
+        forces[i][1] += FORCE_TO_DBL( pFrc[i].y ) * 41.84 * scale_force;
+        forces[i][2] += FORCE_TO_DBL( pFrc[i].z ) * 41.84 * scale_force;
     }
 
     // Potential energy in kJ/mol - seems to be defaul in OpenMM ??

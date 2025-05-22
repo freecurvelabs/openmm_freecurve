@@ -172,7 +172,7 @@ void CommonCalcArrowForceKernel::initialize(const System& system, const ArrowFor
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &nNumProcs);
     MPI_Comm_rank(MPI_COMM_WORLD, &nMyID);
-    MPI_Get_processor_name(sProcTitle, &nTitleLen);
+    MPI_Get_processor_name(sProcTitle, &nTitleLen); 
     strProcTitle = sProcTitle;
 #endif	// MPI		
 
@@ -266,7 +266,7 @@ void CommonCalcArrowForceKernel::initialize(const System& system, const ArrowFor
 //}
 
 
-void CommonCalcArrowForceKernel::setForces(vector<Vec3>& forces_loc, ContextImpl& context) {
+void CommonCalcArrowForceKernel::addForces(vector<Vec3>& forces_loc, ContextImpl& context) {
 
     std::string platform_name = context.getPlatform().getName();
     int natoms = context.getSystem().getNumParticles();
@@ -274,7 +274,12 @@ void CommonCalcArrowForceKernel::setForces(vector<Vec3>& forces_loc, ContextImpl
     if (platform_name == "Reference" || platform_name == "CPU")
     {
         ReferencePlatform::PlatformData *data = reinterpret_cast<ReferencePlatform::PlatformData *>(context.getPlatformData());
-        *(data->forces) = forces_loc;
+        for(int i = 0; i < forces_loc.size(); i++)
+        {
+            (*(data->forces))[i][0] += forces_loc[i][0];
+            (*(data->forces))[i][1] += forces_loc[i][1];
+            (*(data->forces))[i][2] += forces_loc[i][2];
+        }
     }
     else if (platform_name == "CUDA")
     {
@@ -288,9 +293,9 @@ void CommonCalcArrowForceKernel::setForces(vector<Vec3>& forces_loc, ContextImpl
         double scale = (double)0x100000000LL;
         for (int i = 0; i < numParticles; ++i)
         {
-            force[i]                          = forces_loc[order[i]][0] * scale;
-            force[i + paddedNumParticles]     = forces_loc[order[i]][1] * scale;
-            force[i + paddedNumParticles * 2] = forces_loc[order[i]][2] * scale;
+            force[i]                          += forces_loc[order[i]][0] * scale;
+            force[i + paddedNumParticles]     += forces_loc[order[i]][1] * scale;
+            force[i + paddedNumParticles * 2] += forces_loc[order[i]][2] * scale;
         }
         cc.getLongForceBuffer().upload(force);
     }
@@ -304,7 +309,7 @@ void CommonCalcArrowForceKernel::setForces(vector<Vec3>& forces_loc, ContextImpl
 bool bFirstTimePairs = true;
 
 double CommonCalcArrowForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
-    cout << "CommonCalcArrowForceKernel::execute()" << std::endl;
+    // cout << "CommonCalcArrowForceKernel::execute()" << std::endl;
     SimulationCore::CSimulationEnvironment* pEnv = pSysLdr->GetSimulationenvironment();
 
     bool bRes = copyCrdFromContextToArbalest(context, pEnv);
@@ -362,7 +367,13 @@ double CommonCalcArrowForceKernel::execute(ContextImpl& context, bool includeFor
         forces_loc[i][2] = FORCE_TO_DBL( pFrc[i].z ) * 41.84 * scale_force;
     }
 
-    setForces(forces_loc, context);
+    //for( int i = 0; i < 2; i++ )
+    //{
+    //    printf(" CommonCalcArrowForceKernel::execute() line 367  forces[%d] = %f %f %f \n", i, forces_loc[i][0], forces_loc[i][1], forces_loc[i][2]);
+    //}
+    //printf(" CommonCalcArrowForceKernel::execute() line 369 \n" );
+
+    addForces(forces_loc, context);
 
     // Potential energy in kJ/mol in OpenMM
     energy = pEnv->m_pCmptMatrix->m_pfCalculatedValues[0][SimulationCore::ECalculatedValues::eEnergPot]*4.184*scale_force; 

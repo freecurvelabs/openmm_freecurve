@@ -71,7 +71,7 @@ public:
      *
      * @param forces      the ArrowForce to copy the parameters from
      */
-    void setForces(vector<Vec3>& forces, ContextImpl& context);
+    void addForces(vector<Vec3>& forces, ContextImpl& context);
 
 private:
     ComputeContext& cc;
