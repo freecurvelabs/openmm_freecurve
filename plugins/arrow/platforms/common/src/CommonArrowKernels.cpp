@@ -151,7 +151,7 @@ void CommonCalcArrowForceKernel::initialize(const System& system, const ArrowFor
     this->scale_force = force.scale_force;
     std::cout << "Initialize Arbalest structures with config file: " << force.getArbalestConfig() << std::endl;
 
-    int argc = 3;
+    int argc = 5;
     char** argv = new char* [argc];
 
     char argv_2[256];
@@ -160,8 +160,8 @@ void CommonCalcArrowForceKernel::initialize(const System& system, const ArrowFor
     argv[1] = "--config";
     strcpy(argv_2, force.getArbalestConfig().c_str());
     argv[2] = argv_2;
-//    argv[3] = "--gpu";  // For GPU support - to move to CudaArrowKernel
-//    argv[4] = "1";
+    argv[3] = "--gpu";  // For GPU support - to move to CudaArrowKernel
+    argv[4] = "1";
 
     int nMyID = -1, nNumProcs = -1;
     std::string strProcTitle;
@@ -184,7 +184,7 @@ void CommonCalcArrowForceKernel::initialize(const System& system, const ArrowFor
         //            std::string sCurConfigFile = CmdParams.sConfigFile;
         //            cout << "Arbalest Config file " << sCurConfigFile << std::endl;
         //        } 
-        bool useGpu = false;
+        bool useGpu = false;   // Do not use GPU for now
         //bool useGpu = true; 
 
         pSysLdr = std::make_shared< SystemLoading::CSystemLoader >(useGpu);
@@ -258,12 +258,6 @@ void CommonCalcArrowForceKernel::initialize(const System& system, const ArrowFor
     //cc.addForce(new CommonArrowForceInfo(force));
     delete[] argv;
 }
-
-
-//static vector<Vec3>& extractForces(ContextImpl & context) {
-//   CudaPlatform::PlatformData* data = reinterpret_cast<CudaPlatform::PlatformData*>(context.getPlatformData());
-//   return *data->forces;
-//}
 
 
 void CommonCalcArrowForceKernel::addForces(vector<Vec3>& forces_loc, ContextImpl& context) {

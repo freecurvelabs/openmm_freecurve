@@ -179,7 +179,7 @@ void ReferenceCalcArrowForceKernel::initialize(const System& system, const Arrow
         //            std::string sCurConfigFile = CmdParams.sConfigFile;
         //            cout << "Arbalest Config file " << sCurConfigFile << std::endl;
         //        } 
-        bool useGpu = false;
+        bool useGpu = false; // Do not use GPU for now
         //bool useGpu = true; 
 
         pSysLdr = std::make_shared< SystemLoading::CSystemLoader >(useGpu);
