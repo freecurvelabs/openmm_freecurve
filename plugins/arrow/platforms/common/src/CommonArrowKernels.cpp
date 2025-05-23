@@ -178,20 +178,21 @@ void CommonCalcArrowForceKernel::initialize(const System& system, const ArrowFor
 
     try
     {
-        Arbalest::CmdLineContext CmdParams;
+        Arbalest::CmdLineContext CmdParams; 
         //        if (Arbalest::parse_command_line(argc, argv, CmdParams))
         //        {
         //            std::string sCurConfigFile = CmdParams.sConfigFile;
         //            cout << "Arbalest Config file " << sCurConfigFile << std::endl;
         //        } 
-        bool useGpu = false;   // Do not use GPU for now
-        //bool useGpu = true; 
+        //bool useGpu = false;   // Do not use GPU for now
+        bool useGpu = true;  
 
         pSysLdr = std::make_shared< SystemLoading::CSystemLoader >(useGpu);
         // SystemLoading::CSystemLoader SysLdr(useGpu);
-        std::string sCompilationDetails = "";
+        std::string sCompilationDetails = ""; 
         CmdParams.iOpenMPThreads = 8;
         CmdParams.bDumpConf = true;
+        CmdParams.bVerify = false;
         CmdParams.bMkDirs = true;
         CmdParams.bOutputNNDescriptorsToFile = false;
         CmdParams.nOutputNNBesselDescriptorsToFile = false;
@@ -218,7 +219,7 @@ void CommonCalcArrowForceKernel::initialize(const System& system, const ArrowFor
             // return 0;
             return;
         }
-        if (CmdParams.bVerify)
+        if (CmdParams.bVerify) 
         {
 #ifdef ARBALEST_CUDA
             pSysLdr->GetSimulationenvironment()->EnableVerificationGPUvsCPU();
@@ -235,7 +236,7 @@ void CommonCalcArrowForceKernel::initialize(const System& system, const ArrowFor
         SimController.m_pTaskContainer->Initialize(SimController.m_pSimRefs, SimController.m_pSimEnv);
 		SimController.PreLaunchSimulation(); // Moving Simulation setup here    
 		
-        std::cout << "CommonCalcArrowForceKernel::initialize() before SimController.m_pSimEnv->OnTaskStarted() line 231 " << std::endl; 
+        std::cout << "CommonCalcArrowForceKernel::initialize()  before SimController.m_pSimEnv->OnTaskStarted() line 231 " << std::endl; 
 
 		// Move functions from CEnergyValuation::Launch()
 		// Notify objects about beginning of the task
@@ -317,7 +318,7 @@ double CommonCalcArrowForceKernel::execute(ContextImpl& context, bool includeFor
         std::vector<std::shared_ptr<SimulationCore::CAlgorithm> >* pvCmptThAlgorithms = NULL;
         //bool bPerformTaskLaunches = true;
         //bRes = bRes && SimController.m_pTaskContainer->LaunchSequence();
-		// Expand LaunchSequence for SimulationTools::CEnergyValuation::Launch()
+		// Expand LaunchSequence for SimulationTools::CEnergyValuation::Launch()  
 	
          SimulationCore::ECreateAtomPairsHints eCreateAtomPairsHint = SimulationCore::eMandatoryCreateAtomPairs;  // Recompute pairs on every step?  So far this looks more stable
     //   SimulationCore::ECreateAtomPairsHints eCreateAtomPairsHint = SimulationCore::eCreateAtomPairsOnlyIfNecessary;
@@ -325,6 +326,7 @@ double CommonCalcArrowForceKernel::execute(ContextImpl& context, bool includeFor
     //    bool bCalculateAggregatedValues = false;
         SimulationCore::CBARDynamics* pBARDynamics = NULL;
         
+        //printf(" CommonCalcArrowForceKernel::execute()  line 328   \n");  
         bRes = spMDSchemeOperations->ComputeEnergyAndForces(SimController.m_pSimEnv, bFirstTimePairs, eCreateAtomPairsHint, bCalculateAggregatedValues, pBARDynamics); 
 		//bFirstTimePairs = false;   
 		bFirstTimePairs = true;  // Recompute pairs on every step?  So far this looks more stable
