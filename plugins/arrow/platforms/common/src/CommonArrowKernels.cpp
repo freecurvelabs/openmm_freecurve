@@ -147,7 +147,6 @@ bool CommonCalcArrowForceKernel::copyCrdFromContextToArbalest(ContextImpl& conte
 void CommonCalcArrowForceKernel::initialize(const System& system, const ArrowForce& force) {
     // Initialize particle parameters.
     
-    std::cout << "CommonCalcArrowForceKernel::initialize() pt 1" << std::endl;
     this->scale_force = force.scale_force;
     std::cout << "Initialize Arbalest structures with config file: " << force.getArbalestConfig() << std::endl;
 
@@ -195,15 +194,15 @@ void CommonCalcArrowForceKernel::initialize(const System& system, const ArrowFor
         CmdParams.bVerify = false;
         CmdParams.bMkDirs = true;
         CmdParams.bOutputNNDescriptorsToFile = false;
-        CmdParams.nOutputNNBesselDescriptorsToFile = false;
-        printf("CmdParams.iGpuDevId = %d\n", CmdParams.iGpuDevId);
-        printf("CmdParams.bUseGpu = %d\n", CmdParams.bUseGpu);
-        printf("CmdParams.bOutTimeStamp = %d\n", CmdParams.bOutTimeStamp);
-        printf("CmdParams.bGPUTestInfo = %d\n", CmdParams.bGPUTestInfo);
-        printf("CmdParams.bGPUSynchronize = %d\n", CmdParams.bGPUSynchronize);
-        printf("CmdParams.iLogLevel= %d\n", CmdParams.iLogLevel);
-        printf("CmdParams.iMpiProcDelay= %d\n", CmdParams.iMpiProcDelay);
-        printf("CmdParams.sConfigFile= %s\n", CmdParams.sConfigFile.c_str());
+        CmdParams.nOutputNNBesselDescriptorsToFile = -1; // -1 means no output for NNBessel descriptors
+        //printf("CmdParams.iGpuDevId = %d\n", CmdParams.iGpuDevId);
+        //printf("CmdParams.bUseGpu = %d\n", CmdParams.bUseGpu);
+        //printf("CmdParams.bOutTimeStamp = %d\n", CmdParams.bOutTimeStamp);
+        //printf("CmdParams.bGPUTestInfo = %d\n", CmdParams.bGPUTestInfo);
+        //printf("CmdParams.bGPUSynchronize = %d\n", CmdParams.bGPUSynchronize);
+        //printf("CmdParams.iLogLevel= %d\n", CmdParams.iLogLevel);
+        //printf("CmdParams.iMpiProcDelay= %d\n", CmdParams.iMpiProcDelay);
+        //printf("CmdParams.sConfigFile= %s\n", CmdParams.sConfigFile.c_str());
 
         if (!pSysLdr->LoadSystem(force.getArbalestConfig(), sCompilationDetails, CmdParams.iOpenMPThreads, CmdParams.bDumpConf, CmdParams.bMkDirs
             , CmdParams.bOutputNNDescriptorsToFile // For NN
@@ -242,9 +241,7 @@ void CommonCalcArrowForceKernel::initialize(const System& system, const ArrowFor
             }
         }
         SimController.m_pTaskContainer->Initialize(SimController.m_pSimRefs, SimController.m_pSimEnv);
-		SimController.PreLaunchSimulation(); // Moving Simulation setup here    
-		
-        std::cout << "CommonCalcArrowForceKernel::initialize()  before SimController.m_pSimEnv->OnTaskStarted() line 231 " << std::endl; 
+		SimController.PreLaunchSimulation(); // Moving Simulation setup here     
 
 		// Move functions from CEnergyValuation::Launch()
 		// Notify objects about beginning of the task
@@ -312,7 +309,6 @@ void CommonCalcArrowForceKernel::addForces(vector<Vec3>& forces_loc, ContextImpl
 bool bFirstTimePairs = true;
 
 double CommonCalcArrowForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
-    // cout << "CommonCalcArrowForceKernel::execute()" << std::endl;
     SimulationCore::CSimulationEnvironment* pEnv = pSysLdr->GetSimulationenvironment();
 
     bool bRes = copyCrdFromContextToArbalest(context, pEnv);
@@ -334,9 +330,9 @@ double CommonCalcArrowForceKernel::execute(ContextImpl& context, bool includeFor
     //    bool bCalculateAggregatedValues = false;
         SimulationCore::CBARDynamics* pBARDynamics = NULL;
         
-        //printf(" CommonCalcArrowForceKernel::execute()  line 328   \n");  
         bRes = spMDSchemeOperations->ComputeEnergyAndForces(SimController.m_pSimEnv, bFirstTimePairs, eCreateAtomPairsHint, bCalculateAggregatedValues, pBARDynamics); 
-		//bFirstTimePairs = false;   
+		 
+        //bFirstTimePairs = false;   
 		bFirstTimePairs = true;  // Recompute pairs on every step?  So far this looks more stable
     }
     catch (const Common::CException& e)
