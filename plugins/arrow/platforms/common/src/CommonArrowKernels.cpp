@@ -190,12 +190,20 @@ void CommonCalcArrowForceKernel::initialize(const System& system, const ArrowFor
         pSysLdr = std::make_shared< SystemLoading::CSystemLoader >(useGpu);
         // SystemLoading::CSystemLoader SysLdr(useGpu);
         std::string sCompilationDetails = ""; 
-        CmdParams.iOpenMPThreads = 8;
+        CmdParams.iOpenMPThreads = 4;
         CmdParams.bDumpConf = true;
         CmdParams.bVerify = false;
         CmdParams.bMkDirs = true;
         CmdParams.bOutputNNDescriptorsToFile = false;
         CmdParams.nOutputNNBesselDescriptorsToFile = false;
+        printf("CmdParams.iGpuDevId = %d\n", CmdParams.iGpuDevId);
+        printf("CmdParams.bUseGpu = %d\n", CmdParams.bUseGpu);
+        printf("CmdParams.bOutTimeStamp = %d\n", CmdParams.bOutTimeStamp);
+        printf("CmdParams.bGPUTestInfo = %d\n", CmdParams.bGPUTestInfo);
+        printf("CmdParams.bGPUSynchronize = %d\n", CmdParams.bGPUSynchronize);
+        printf("CmdParams.iLogLevel= %d\n", CmdParams.iLogLevel);
+        printf("CmdParams.iMpiProcDelay= %d\n", CmdParams.iMpiProcDelay);
+        printf("CmdParams.sConfigFile= %s\n", CmdParams.sConfigFile.c_str());
 
         if (!pSysLdr->LoadSystem(force.getArbalestConfig(), sCompilationDetails, CmdParams.iOpenMPThreads, CmdParams.bDumpConf, CmdParams.bMkDirs
             , CmdParams.bOutputNNDescriptorsToFile // For NN
