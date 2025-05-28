@@ -67,6 +67,15 @@ public:
     bool copyCrdFromContextToArbalest(ContextImpl& context, SimulationCore::CEnvironmentReplica* pEnvReplica);
 
     /**
+      * Copy coordinates from Arbalest environment to OpenMM context.
+      *
+      * @param pEnvReplica   Arbalest environment Replica ( source )
+      * @param context       the context ( destination )
+      * 
+    */
+    bool copyCrdFromArbalestToContext(SimulationCore::CEnvironmentReplica* pEnvReplica, ContextImpl& context );
+
+    /**
      * Set forces to the context
      *
      * @param forces      the ArrowForce to copy the parameters from

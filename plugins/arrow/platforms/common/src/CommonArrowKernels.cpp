@@ -79,7 +79,8 @@ bool CommonCalcArrowForceKernel::copyCrdFromContextToArbalest(ContextImpl& conte
     int natoms = positions.size();
 
     for(int i = 0; i < natoms; i++)
-      positions[i] = positions[i]* 10.0; 
+      positions[i] = positions[i] * 10.0; 
+
     a = a * 10.0;
     b = b * 10.0;
     c = c * 10.0;
@@ -123,15 +124,18 @@ bool CommonCalcArrowForceKernel::copyCrdFromContextToArbalest(ContextImpl& conte
             SimulationCore::CFunctionalGroup* pFuncGroupSystem = pEnvReplica->m_pFuncGroups->GetGroupSystem();
             Common::IndexType iAtom = -1, nUsedAtomsNumber = 0;
             const Common::IndexType* pUsedAtomicIndices = pFuncGroupSystem->GetAtomicIndices(bSortedAtomsOrder, nUsedAtomsNumber);
+
+            SimulationCore::VECVAL3D *pvecAtomShift = &pSysLdr->GetSimulationenvironment()->m_vecAtomShift;
+
             for (int i = 0; i < natoms; i++)
             {
                 //if( i < 3 ) {
                 //   std::cout << " Atoms Positions: " << std::endl; 
                 //   std::cout << i << "  " << positions[i][0]  << "  " << positions[i][1] << "  " << positions[i][2] << std::endl;
                 //}
-                pEnvReplica->m_pCmptAtoms->m_pR[i].x = DBL_TO_COORD( positions[i][0] );
-                pEnvReplica->m_pCmptAtoms->m_pR[i].y = DBL_TO_COORD( positions[i][1] );
-                pEnvReplica->m_pCmptAtoms->m_pR[i].z = DBL_TO_COORD( positions[i][2] );
+                pEnvReplica->m_pCmptAtoms->m_pR[i].x = DBL_TO_COORD( positions[i][0] - VEC_X(pvecAtomShift[0]) );
+                pEnvReplica->m_pCmptAtoms->m_pR[i].y = DBL_TO_COORD( positions[i][1] - VEC_Y(pvecAtomShift[0]) );
+                pEnvReplica->m_pCmptAtoms->m_pR[i].z = DBL_TO_COORD( positions[i][2] - VEC_Z(pvecAtomShift[0]) );
             }
         }
     }
@@ -143,6 +147,62 @@ bool CommonCalcArrowForceKernel::copyCrdFromContextToArbalest(ContextImpl& conte
 
     return bRes;
 }
+
+bool CommonCalcArrowForceKernel::copyCrdFromArbalestToContext(SimulationCore::CEnvironmentReplica* pEnvReplica, ContextImpl& context )
+{
+    OpenMM::Vec3 a, b, c; //Periodic box vectors
+
+    //context.getPositions(positions);
+    //context.getPeriodicBoxVectors(a, b, c);
+
+    int natoms = pEnvReplica->m_pCmptAtoms->m_nAtoms;
+    std::vector<OpenMM::Vec3> positions(natoms); 
+
+    bool bRes = true;
+    try
+    {
+        // bool bSortedAtomsOrder = true;
+        //SimulationCore::CFunctionalGroup* pFuncGroupSystem = pEnvReplica->m_pFuncGroups->GetGroupSystem();
+        //Common::IndexType iAtom = -1, nUsedAtomsNumber = 0;
+        //const Common::IndexType* pUsedAtomicIndices = pFuncGroupSystem->GetAtomicIndices(bSortedAtomsOrder, nUsedAtomsNumber);
+
+        SimulationCore::VECVAL3D *pvecAtomShift = &pSysLdr->GetSimulationenvironment()->m_vecAtomShift;
+        // printf("pSysLdr->GetSimulationenvironment()->m_vecAtomShift[0] = %f %f %f\n", pvecAtomShift[0].x, pvecAtomShift[0].y, pvecAtomShift[0].z);
+
+        //std::cout << " CommonCalcArrowForceKernel::copyCrdFromArbalestToContext()  Atoms Positions: " << std::endl; 
+        for (int i = 0; i < natoms; i++)
+        {
+            //if( i < 2 ) {
+               //std::cout << i << "  " << COORD_TO_DBL(pEnvReplica->m_pCmptAtoms->m_pR[i].x)  << "  " << COORD_TO_DBL(pEnvReplica->m_pCmptAtoms->m_pR[i].y) << "  " 
+               //<< COORD_TO_DBL(pEnvReplica->m_pCmptAtoms->m_pR[i].z) << std::endl;
+            //}
+            // Convert positions from Arbalest to OpenMM format
+            positions[i][0] = COORD_TO_DBL(pEnvReplica->m_pCmptAtoms->m_pR[i].x) + VEC_X(pvecAtomShift[0]);
+            positions[i][1] = COORD_TO_DBL(pEnvReplica->m_pCmptAtoms->m_pR[i].y) + VEC_Y(pvecAtomShift[0]);
+            positions[i][2] = COORD_TO_DBL(pEnvReplica->m_pCmptAtoms->m_pR[i].z) + VEC_Z(pvecAtomShift[0]);
+        }
+    }
+    catch (...)
+    {
+        TRACE_FATAL2(_ComStr("Atom Positions Loading"), BLDSTRING1("Unknown exception while loading atoms positions from OPENMM context "));
+        bRes = false;
+    }
+
+    for(int i = 0; i < natoms; i++)
+    {
+        positions[i] = positions[i] * 0.1; // Convert to nanometers
+        //if( i < 2 ) {
+        //    std::cout << i << "  " << positions[i][0]  << "  " << positions[i][1] << "  " << positions[i][2] << std::endl;
+        //}
+    }
+
+    context.setPositions(positions);
+    // context.setPeriodicBoxVectors(a, b, c); No changing of periodic box vectors so far
+
+    return bRes;
+}
+
+
 
 void CommonCalcArrowForceKernel::initialize(const System& system, const ArrowForce& force) {
     // Initialize particle parameters.
@@ -218,6 +278,8 @@ void CommonCalcArrowForceKernel::initialize(const System& system, const ArrowFor
             // LOG_INFO << "Simulation configuration successfully loaded!" << FLUSH_LOG;
             std::cout << "Simulation configuration successfully loaded!" << std::endl;
         }
+
+        SimulationCore::VECVAL3D *pvecAtomShift = &pSysLdr->GetSimulationenvironment()->m_vecAtomShift;
 
         if (!SimController.Initialize(pSysLdr->GetSimulationReferences(), pSysLdr->GetSimulationenvironment(), pSysLdr->GetTaskContainer(), CmdParams.bOutTimeStamp))
         {
@@ -331,6 +393,7 @@ double CommonCalcArrowForceKernel::execute(ContextImpl& context, bool includeFor
         SimulationCore::CBARDynamics* pBARDynamics = NULL;
         
         bRes = spMDSchemeOperations->ComputeEnergyAndForces(SimController.m_pSimEnv, bFirstTimePairs, eCreateAtomPairsHint, bCalculateAggregatedValues, pBARDynamics); 
+        bRes = copyCrdFromArbalestToContext(pEnv, context); // Copy coordinates from Arbalest environment to OpenMM context as coordinates may change to moving atoms to the central unit cell 
 		 
         //bFirstTimePairs = false;   
 		bFirstTimePairs = true;  // Recompute pairs on every step?  So far this looks more stable
