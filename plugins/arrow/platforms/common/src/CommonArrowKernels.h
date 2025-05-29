@@ -76,6 +76,13 @@ public:
     bool copyCrdFromArbalestToContext(SimulationCore::CEnvironmentReplica* pEnvReplica, ContextImpl& context );
 
     /**
+      * check of coordinates in Arbalest environment changes in the last force call.
+      *
+      * 
+    */
+    bool posInternalChanged() con; 
+
+    /**
      * Set forces to the context
      *
      * @param forces      the ArrowForce to copy the parameters from
