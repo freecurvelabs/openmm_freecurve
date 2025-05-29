@@ -51,6 +51,8 @@ public:
      * @param force      the DrudeForce to copy the parameters from
      */
     virtual void copyParametersToContext(ContextImpl& context, const ArrowForce& force) = 0;
+    virtual bool posInternalChanged(ContextImpl& context) const = 0;
+    virtual void copyInternalPositionsToContext(ContextImpl& context) = 0;
 };
 
 

@@ -41,3 +41,14 @@ ForceImpl* ArrowForce::createImpl() const {
 void ArrowForce::updateParametersInContext(Context& context) {
     dynamic_cast<ArrowForceImpl&>(getImplInContext(context)).updateParametersInContext(getContextImpl(context));
 }
+
+bool ArrowForce::posInternalChanged(Context& context)
+{
+    bool res = dynamic_cast<ArrowForceImpl&>(getImplInContext(context)).posInternalChanged(getContextImpl(context));
+    return res;
+}
+
+void ArrowForce::copyInternalPositionsToContext(Context& context)
+{
+    dynamic_cast<ArrowForceImpl&>(getImplInContext(context)).copyInternalPositionsToContext(getContextImpl(context));
+}

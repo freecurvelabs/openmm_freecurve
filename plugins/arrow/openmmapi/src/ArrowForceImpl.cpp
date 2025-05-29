@@ -82,6 +82,16 @@ void ArrowForceImpl::updateParametersInContext(ContextImpl& context) {
     context.systemChanged();
 }
 
+bool ArrowForceImpl::posInternalChanged(ContextImpl& context) {
+    bool res = kernel.getAs<CalcArrowForceKernel>().posInternalChanged(context);
+    return res;
+}
+
+void ArrowForceImpl::copyInternalPositionsToContext(ContextImpl& context)
+{
+    kernel.getAs<CalcArrowForceKernel>().copyInternalPositionsToContext(context);
+}
+
 vector<pair<int, int> > ArrowForceImpl::getBondedParticles() const {
     int numParticles = owner.getNumParticles();
     vector<pair<int, int> > bonds(numParticles);

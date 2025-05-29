@@ -73,14 +73,20 @@ public:
       * @param context       the context ( destination )
       * 
     */
-    bool copyCrdFromArbalestToContext(SimulationCore::CEnvironmentReplica* pEnvReplica, ContextImpl& context );
-
+    bool saveInternalPositions(SimulationCore::CEnvironmentReplica* pEnvReplica, ContextImpl& context );
+  
     /**
       * check of coordinates in Arbalest environment changes in the last force call.
-      *
-      * 
+      * @param context       the context to choose the proper kernel
     */
-    bool posInternalChanged() con; 
+    bool posInternalChanged(ContextImpl& context) const;
+
+    /**
+     * Copy internal positions to OpenMM context.
+     *
+     * @param context       the context to copy the positions to
+     */
+    void copyInternalPositionsToContext(ContextImpl& context);
 
     /**
      * Set forces to the context
@@ -95,12 +101,16 @@ private:
     ComputeArray pairParams;
 	
 	double scale_force;  // scale force parameter
+  bool positions_changed = false;
+  std::vector<OpenMM::Vec3> positions_internal; // internal atom positions in Arbalest environment
+
 	std::vector<int> particle;
 
-    // Arbalest structures:
-    SimulationTools::CSimulationController SimController;
-    std::shared_ptr<SystemLoading::CSystemLoader> pSysLdr;
+  // Arbalest structures:
+  SimulationTools::CSimulationController SimController;
+  std::shared_ptr<SystemLoading::CSystemLoader> pSysLdr;
 	std::shared_ptr<SimulationCore::CMDSchemeCommonOperations> spMDSchemeOperations;
+  
 };
 
 } // namespace OpenMM

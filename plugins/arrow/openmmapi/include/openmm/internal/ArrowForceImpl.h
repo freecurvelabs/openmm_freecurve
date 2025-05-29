@@ -42,6 +42,10 @@ public:
     void updateParametersInContext(ContextImpl& context);
     std::vector<std::pair<int, int> > getBondedParticles() const;
     bool usesPeriodicBoundaryConditions() const { return true; }
+
+    bool posInternalChanged(ContextImpl& context); 
+    void copyInternalPositionsToContext(ContextImpl& context);
+    
 private:
     const ArrowForce& owner;
     Kernel kernel;

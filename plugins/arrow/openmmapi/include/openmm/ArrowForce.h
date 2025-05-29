@@ -65,7 +65,20 @@ public:
      * @param particle        the index within the System of the Arrow particle
      */
     void setParticleParameters(int index, int particle);
-    
+
+    /**
+     * Check if Internal Positions were changed on the last force call .
+     *
+     */
+    bool posInternalChanged(Context& context);
+
+    /**
+     * Copy internal positions to OpenMM context.
+     *
+     * @param context       the context to copy the positions to
+     */
+    void copyInternalPositionsToContext(Context& context);
+
     /**
      * Update parameters in context
      *

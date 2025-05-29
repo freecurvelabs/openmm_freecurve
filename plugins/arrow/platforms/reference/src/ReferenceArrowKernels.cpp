@@ -340,3 +340,15 @@ void ReferenceCalcArrowForceKernel::copyParametersToContext(ContextImpl& context
             throw OpenMMException("updateParametersInContext: A particle index has changed");
     }
 }
+
+bool ReferenceCalcArrowForceKernel::posInternalChanged(ContextImpl& context) const
+{
+    printf(" CommonCalcArrowForceKernel::posInternalChanged() = %d \n", this->positions_changed);
+    fflush(stdout);
+    return this->positions_changed;
+}
+
+void ReferenceCalcArrowForceKernel::copyInternalPositionsToContext(ContextImpl& context) {
+    // Copy internal positions to OpenMM context
+    printf(" CommonCalcArrowForceKernel::copyInternalPositionsToContext() - not implemented so far\n");
+}   

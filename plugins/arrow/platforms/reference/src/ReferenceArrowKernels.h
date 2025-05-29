@@ -69,8 +69,17 @@ public:
     */
     bool copyCrdFromContextToArbalest(ContextImpl& context, SimulationCore::CEnvironmentReplica* pEnvReplica);
 
+    /**
+      * check of coordinates in Arbalest environment changes in the last force call.
+      *
+      * @param context       the context to set a proper kernel
+    */
+    bool posInternalChanged(ContextImpl& context) const;
+    void copyInternalPositionsToContext(ContextImpl& context);
+
 private:
     double scale_force;  // scale force parameter
+    bool positions_changed = false;
     std::vector<int> particle;
 
     // Arbalest structures:

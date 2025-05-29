@@ -148,73 +148,53 @@ bool CommonCalcArrowForceKernel::copyCrdFromContextToArbalest(ContextImpl& conte
     return bRes;
 }
 
-bool CommonCalcArrowForceKernel::copyCrdFromArbalestToContext(SimulationCore::CEnvironmentReplica* pEnvReplica, ContextImpl& context )
+bool CommonCalcArrowForceKernel::saveInternalPositions( SimulationCore::CEnvironmentReplica* pEnvReplica, ContextImpl& context )
 {
-    OpenMM::Vec3 a, b, c; //Periodic box vectors
+    // printf("CommonCalcArrowForceKernel::copyCrdFromArbalestToContext() \n");
+    OpenMM::Vec3 a, b, c; //Periodic box
+    std::vector<OpenMM::Vec3> positions_old;
 
-    std::vector<OpenMM::Vec3> positions_old;   
-    context.getPositions(positions_old);
     //context.getPeriodicBoxVectors(a, b, c);
-
+    context.getPositions(positions_old);
+    
     int natoms = pEnvReplica->m_pCmptAtoms->m_nAtoms;
-    std::vector<OpenMM::Vec3> positions(natoms, OpenMM::Vec3(0.0, 0.0, 0.0));
+    positions_internal.resize(natoms, OpenMM::Vec3(0.0, 0.0, 0.0));
     
     bool bRes = true;
-    try
+    SimulationCore::VECVAL3D *pvecAtomShift = &pSysLdr->GetSimulationenvironment()->m_vecAtomShift;
+    for (int i = 0; i < natoms; i++)
     {
-        // bool bSortedAtomsOrder = true;
-        //SimulationCore::CFunctionalGroup* pFuncGroupSystem = pEnvReplica->m_pFuncGroups->GetGroupSystem();
-        //Common::IndexType iAtom = -1, nUsedAtomsNumber = 0;
-        //const Common::IndexType* pUsedAtomicIndices = pFuncGroupSystem->GetAtomicIndices(bSortedAtomsOrder, nUsedAtomsNumber);
-
-        SimulationCore::VECVAL3D *pvecAtomShift = &pSysLdr->GetSimulationenvironment()->m_vecAtomShift;
-        // printf("pSysLdr->GetSimulationenvironment()->m_vecAtomShift[0] = %f %f %f\n", pvecAtomShift[0].x, pvecAtomShift[0].y, pvecAtomShift[0].z);
-
-        //std::cout << " CommonCalcArrowForceKernel::copyCrdFromArbalestToContext()  Atoms Positions: " << std::endl; 
-        for (int i = 0; i < natoms; i++)
-        {
-            //if( i < 2 ) {
-               //std::cout << i << "  " << COORD_TO_DBL(pEnvReplica->m_pCmptAtoms->m_pR[i].x)  << "  " << COORD_TO_DBL(pEnvReplica->m_pCmptAtoms->m_pR[i].y) << "  " 
-               //<< COORD_TO_DBL(pEnvReplica->m_pCmptAtoms->m_pR[i].z) << std::endl;
-            //}
-            // Convert positions from Arbalest to OpenMM format
-            positions[i][0] = COORD_TO_DBL(pEnvReplica->m_pCmptAtoms->m_pR[i].x) + VEC_X(pvecAtomShift[0]);
-            positions[i][1] = COORD_TO_DBL(pEnvReplica->m_pCmptAtoms->m_pR[i].y) + VEC_Y(pvecAtomShift[0]);
-            positions[i][2] = COORD_TO_DBL(pEnvReplica->m_pCmptAtoms->m_pR[i].z) + VEC_Z(pvecAtomShift[0]);
-        }
-    }
-    catch (...)
-    {
-        TRACE_FATAL2(_ComStr("Atom Positions Loading"), BLDSTRING1("Unknown exception while loading atoms positions from OPENMM context "));
-        bRes = false;
+        positions_internal[i][0] = COORD_TO_DBL(pEnvReplica->m_pCmptAtoms->m_pR[i].x) + VEC_X(pvecAtomShift[0]);
+        positions_internal[i][1] = COORD_TO_DBL(pEnvReplica->m_pCmptAtoms->m_pR[i].y) + VEC_Y(pvecAtomShift[0]);
+        positions_internal[i][2] = COORD_TO_DBL(pEnvReplica->m_pCmptAtoms->m_pR[i].z) + VEC_Z(pvecAtomShift[0]);
     }
 
+    this->positions_changed = false;
     for(int i = 0; i < natoms; i++)
     {
-        positions[i] = positions[i] * 0.1; // Convert to nanometers
+        positions_internal[i] = positions_internal[i] * 0.1; // Convert to nanometers
 
-        double d2 = 0.0;
-        for (int j = 0; j < 3; j++) {
-            d2 += (positions[i][j] - positions_old[i][j]) * (positions[i][j] - positions_old[i][j]);
-        }
+        //double d2 = 0.0;
+        //for (int j = 0; j < 3; j++) {
+        //    d2 += (positions_internal[i][j] - positions_old[i][j]) * (positions_internal[i][j] - positions_old[i][j]);
+        //}
         
-        if( d2 > 0.0001 && i < 0) { // 0.0001 nm^2 = 0.01 Angstroms
-            std::cout << " CommonCalcArrowForceKernel::copyCrdFromArbalestToContext()  Atoms Positions: " << std::endl; 
-            std::cout << i << " old: " << positions_old[i][0]  << "  " << positions_old[i][1] << "  " << positions_old[i][2] << std::endl;
-            std::cout << i << " new: " << positions[i][0]  << "  " << positions[i][1] << "  " << positions[i][2] << std::endl;
-        }
-        
-        //if( i < 2 ) {
-        //    std::cout << i << "  " << positions[i][0]  << "  " << positions[i][1] << "  " << positions[i][2] << std::endl;
+        //if( d2 > 0.0001 && i < 1000) { // 0.0001 nm^2 = 0.01 Angstroms
+        //    positions_changed = true;
+        //    std::cout << " CommonCalcArrowForceKernel::copyCrdFromArbalestToContext()  Atoms Positions: " << std::endl; 
+        //    std::cout << i << " old: " << positions_old[i][0]  << "  " << positions_old[i][1] << "  " << positions_old[i][2] << std::endl;
+        //    std::cout << i << " new: " << positions_internal[i][0]  << "  " << positions_internal[i][1] << "  " << positions_internal[i][2] << std::endl;
         //}
     }
 
-    //context.setPositions(positions);
+    //if( positions_changed ) {
+    //    this->positions_changed = true;
+    //    context.setPositions(positions);
+    //}
     // context.setPeriodicBoxVectors(a, b, c); No changing of periodic box vectors so far
 
     return bRes;
 }
-
 
 
 void CommonCalcArrowForceKernel::initialize(const System& system, const ArrowForce& force) {
@@ -406,7 +386,7 @@ double CommonCalcArrowForceKernel::execute(ContextImpl& context, bool includeFor
         SimulationCore::CBARDynamics* pBARDynamics = NULL;
         
         bRes = spMDSchemeOperations->ComputeEnergyAndForces(SimController.m_pSimEnv, bFirstTimePairs, eCreateAtomPairsHint, bCalculateAggregatedValues, pBARDynamics); 
-        bRes = copyCrdFromArbalestToContext(pEnv, context); // Copy coordinates from Arbalest environment to OpenMM context as coordinates may change to moving atoms to the central unit cell 
+        bRes = saveInternalPositions(pEnv, context); // save coordinates from Arbalest environment in positions_arbalest
 		 
         //bFirstTimePairs = false;   
 		bFirstTimePairs = true;  // Recompute pairs on every step?  So far this looks more stable
@@ -457,37 +437,23 @@ double CommonCalcArrowForceKernel::execute(ContextImpl& context, bool includeFor
 }
 
 void CommonCalcArrowForceKernel::copyParametersToContext(ContextImpl& context, const ArrowForce& force) {
-    if (force.getNumParticles() != particle.size())
-        throw OpenMMException("updateParametersInContext: The number of Drude particles has changed");
+    // printf(" CommonCalcArrowForceKernel::copyParametersToContext() \n");
+    // fflush(stdout);
 
-    for (int i = 0; i < force.getNumParticles(); i++) {
-        int p;
-        force.getParticleParameters(i, p);
-        if (p != particle[i] )
-            throw OpenMMException("updateParametersInContext: A particle index has changed");
-    } 
+    SimulationCore::CSimulationEnvironment* pEnv = pSysLdr->GetSimulationenvironment();
+    //bool bRes = copyCrdFromArbalestToContext(pEnv, context); // Copy coordinates from Arbalest environment to OpenMM context as coordinates may change to moving atoms to the central unit cell 
 }
 
-/*  Theis is from Drudw plugin code - may be it is important
-void CommonCalcArrowForceKernel::copyParametersToContext(ContextImpl& context, const ArrowForce& force) {
-    if (cc.getContextIndex() != 0)
-        return; // This is run entirely on one device
-    
-    // Set the particle parameters.
-    
-    ContextSelector selector(cc);
-    int numParticles = force.getNumParticles();
-    if (numParticles > 0) {
-        if (!particleParams.isInitialized() || numParticles != particleParams.getSize())
-            throw OpenMMException("updateParametersInContext: The number of particles has changed");
-        vector<mm_float4> paramVector(numParticles);
-        for (int i = 0; i < numParticles; i++) {
-            int p;
-            force.getParticleParameters(i, p);
-//            paramVector[i] = mm_float4((float) k1, (float) k2, (float) k3, 0.0f);
-        }
-        particleParams.upload(paramVector);
-    }
-    
+bool CommonCalcArrowForceKernel::posInternalChanged(ContextImpl& context) const
+{
+    printf(" CommonCalcArrowForceKernel::posInternalChanged() = %d \n", this->positions_changed);
+    fflush(stdout);
+    return this->positions_changed;
 }
-*/
+
+void CommonCalcArrowForceKernel::copyInternalPositionsToContext(ContextImpl& context)
+{
+    context.setPositions(positions_internal);
+    // context.setPeriodicBoxVectors(a, b, c); No changing of periodic box vectors so far
+}
+
