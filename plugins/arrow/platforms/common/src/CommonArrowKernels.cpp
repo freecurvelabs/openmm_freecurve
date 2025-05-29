@@ -153,12 +153,12 @@ bool CommonCalcArrowForceKernel::copyCrdFromArbalestToContext(SimulationCore::CE
     OpenMM::Vec3 a, b, c; //Periodic box vectors
 
     std::vector<OpenMM::Vec3> positions_old;   
-    context.getPositions(positions);
+    context.getPositions(positions_old);
     //context.getPeriodicBoxVectors(a, b, c);
 
     int natoms = pEnvReplica->m_pCmptAtoms->m_nAtoms;
     std::vector<OpenMM::Vec3> positions(natoms, OpenMM::Vec3(0.0, 0.0, 0.0));
-
+    
     bool bRes = true;
     try
     {
@@ -193,13 +193,14 @@ bool CommonCalcArrowForceKernel::copyCrdFromArbalestToContext(SimulationCore::CE
     {
         positions[i] = positions[i] * 0.1; // Convert to nanometers
 
-        double d2 = (positions[i].x - positions_old[i].x)**2  
-        d2 += (positions[i].y - positions_old[i].y)**2  
-        d2 += (positions[i].z - positions_old[i].z)**2
+        double d2 = 0.0;
+        for (int j = 0; j < 3; j++) {
+            d2 += (positions[i][j] - positions_old[i][j]) * (positions[i][j] - positions_old[i][j]);
+        }
         
-        if( d2 > 0.0001 ) { // 0.0001 nm^2 = 0.01 Angstroms
+        if( d2 > 0.0001 && i < 0) { // 0.0001 nm^2 = 0.01 Angstroms
             std::cout << " CommonCalcArrowForceKernel::copyCrdFromArbalestToContext()  Atoms Positions: " << std::endl; 
-            std::cout << i << " old: " << positions[i][0]  << "  " << positions[i][1] << "  " << positions[i][2] << std::endl;
+            std::cout << i << " old: " << positions_old[i][0]  << "  " << positions_old[i][1] << "  " << positions_old[i][2] << std::endl;
             std::cout << i << " new: " << positions[i][0]  << "  " << positions[i][1] << "  " << positions[i][2] << std::endl;
         }
         
