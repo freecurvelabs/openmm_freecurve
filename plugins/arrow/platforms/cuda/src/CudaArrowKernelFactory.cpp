@@ -43,7 +43,7 @@ extern "C" OPENMM_EXPORT void registerArrowCudaKernelFactories() {
 KernelImpl* CudaArrowKernelFactory::createKernelImpl(std::string name, const Platform& platform, ContextImpl& context) const {
     CudaContext& cu = *static_cast<CudaPlatform::PlatformData*>(context.getPlatformData())->contexts[0];
     if (name == CalcArrowForceKernel::Name())
-        return new CommonCalcArrowForceKernel(name, platform, cu);
+        return new CommonCalcArrowForceKernel(name, platform, &cu);
 
     throw OpenMMException((std::string("Tried to create kernel with illegal kernel name '")+name+"'").c_str());
 }

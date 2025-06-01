@@ -61,31 +61,8 @@ public:
      */
     void copyParametersToContext(ContextImpl& context, const ArrowForce& force);
 
-    /**
-      * Copy coordinates from OpenMM context to Arbalest environment.
-      *
-      * @param context       the context ( source )
-      * @param pEnvReplica   Arbalest environment Replica ( destination )
-    */
-    bool copyCrdFromContextToArbalest(ContextImpl& context, SimulationCore::CEnvironmentReplica* pEnvReplica);
-
-    /**
-      * check of coordinates in Arbalest environment changes in the last force call.
-      *
-      * @param context       the context to set a proper kernel
-    */
-    bool posInternalChanged(ContextImpl& context) const;
-    void copyInternalPositionsToContext(ContextImpl& context);
-
 private:
-    double scale_force;  // scale force parameter
-    bool positions_changed = false;
-    std::vector<int> particle;
 
-    // Arbalest structures:
-    SimulationTools::CSimulationController SimController;
-    std::shared_ptr<SystemLoading::CSystemLoader> pSysLdr;
-	std::shared_ptr<SimulationCore::CMDSchemeCommonOperations> spMDSchemeOperations;
 };
 
 

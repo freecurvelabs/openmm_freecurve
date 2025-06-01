@@ -237,12 +237,19 @@ void CommonCalcArrowForceKernel::initialize(const System& system, const ArrowFor
         //            cout << "Arbalest Config file " << sCurConfigFile << std::endl;
         //        } 
         //bool useGpu = false;   // Do not use GPU for now
-        bool useGpu = true;  
+        
+        std::string platform_name = kernel_platform.getName();
 
-        pSysLdr = std::make_shared< SystemLoading::CSystemLoader >(useGpu);
+        bool useGpu = false; 
+        if (platform_name == "CUDA") {  
+            useGpu = true;
+        }
+
+        pSysLdr = std::make_shared< SystemLoading::CSystemLoader >(useGpu);  
+
         // SystemLoading::CSystemLoader SysLdr(useGpu);
         std::string sCompilationDetails = ""; 
-        CmdParams.iOpenMPThreads = 4;
+        CmdParams.iOpenMPThreads = 4;  
         CmdParams.bDumpConf = true;
         CmdParams.bVerify = false;
         CmdParams.bMkDirs = true;
@@ -281,12 +288,14 @@ void CommonCalcArrowForceKernel::initialize(const System& system, const ArrowFor
             // return 0;
             return;
         }
+
         if (CmdParams.bVerify) 
         {
 #ifdef ARBALEST_CUDA
             pSysLdr->GetSimulationenvironment()->EnableVerificationGPUvsCPU();
 #endif // ARBALEST_CUDA
         }
+
         if (CmdParams.bGPUSynchronize)
         {
             SimulationCore::CSimulationEnvironmentGPU* pSimEnvGpu = dynamic_cast<SimulationCore::CSimulationEnvironmentGPU*>(pSysLdr->GetSimulationenvironment());
@@ -295,8 +304,10 @@ void CommonCalcArrowForceKernel::initialize(const System& system, const ArrowFor
                 pSimEnvGpu->EnableSynchronizationGPUvsCPU(true);
             }
         }
+
         SimController.m_pTaskContainer->Initialize(SimController.m_pSimRefs, SimController.m_pSimEnv);
-		SimController.PreLaunchSimulation(); // Moving Simulation setup here     
+
+		SimController.PreLaunchSimulation(); // Moving Simulation setup here
 
 		// Move functions from CEnergyValuation::Launch()
 		// Notify objects about beginning of the task
@@ -338,12 +349,12 @@ void CommonCalcArrowForceKernel::addForces(vector<Vec3>& forces_loc, ContextImpl
     }
     else if (platform_name == "CUDA")
     {
-        ContextSelector selector(cc);
-        long long *force = (long long *)cc.getPinnedBuffer();
-        cc.getLongForceBuffer().download(force);
-        const vector<int> &order = cc.getAtomIndex();
+        ContextSelector selector(*p_cc);
+        long long *force = (long long *)p_cc->getPinnedBuffer();
+        p_cc->getLongForceBuffer().download(force);
+        const vector<int> &order = p_cc->getAtomIndex();
         int numParticles = context.getSystem().getNumParticles();
-        int paddedNumParticles = cc.getPaddedNumAtoms();
+        int paddedNumParticles = p_cc->getPaddedNumAtoms();
         // forces.resize(numParticles);
         double scale = (double)0x100000000LL;
         for (int i = 0; i < numParticles; ++i)
@@ -352,7 +363,7 @@ void CommonCalcArrowForceKernel::addForces(vector<Vec3>& forces_loc, ContextImpl
             force[i + paddedNumParticles]     += forces_loc[order[i]][1] * scale;
             force[i + paddedNumParticles * 2] += forces_loc[order[i]][2] * scale;
         }
-        cc.getLongForceBuffer().upload(force);
+        p_cc->getLongForceBuffer().upload(force);
     }
     else
     {

@@ -6,7 +6,7 @@
  * -------------------------------------------------------------------------- */
 
 #include "ReferenceArrowKernelFactory.h"
-#include "ReferenceArrowKernels.h"
+#include "CommonArrowKernels.h"
 #include "ReferencePlatform.h"
 #include "openmm/internal/ContextImpl.h"
 #include "openmm/OpenMMException.h"
@@ -33,7 +33,7 @@ extern "C" OPENMM_EXPORT void registerArrowReferenceKernelFactories() {
 KernelImpl* ReferenceArrowKernelFactory::createKernelImpl(std::string name, const Platform& platform, ContextImpl& context) const {
     ReferencePlatform::PlatformData& data = *static_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
     if (name == CalcArrowForceKernel::Name())
-        return new ReferenceCalcArrowForceKernel(name, platform);
+        return new CommonCalcArrowForceKernel(name, platform, NULL);
 
     throw OpenMMException((std::string("Tried to create kernel with illegal kernel name '")+name+"'").c_str());
 }

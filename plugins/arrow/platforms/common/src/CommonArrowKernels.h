@@ -31,8 +31,8 @@ namespace OpenMM {
  */
 class CommonCalcArrowForceKernel : public CalcArrowForceKernel {
 public:
-    CommonCalcArrowForceKernel(const std::string& name, const Platform& platform, ComputeContext& cc) :
-            CalcArrowForceKernel(name, platform), cc(cc) {
+    CommonCalcArrowForceKernel(const std::string& name, const Platform& platform, ComputeContext* p_cc) :
+            CalcArrowForceKernel(name, platform), p_cc(p_cc), kernel_platform(platform) {
     }
     /**
      * Initialize the kernel.
@@ -96,9 +96,11 @@ public:
     void addForces(vector<Vec3>& forces, ContextImpl& context);
 
 private:
-    ComputeContext& cc;
-    ComputeArray particleParams;
-    ComputeArray pairParams;
+
+  const Platform& kernel_platform;
+  ComputeContext* p_cc; // Pointer to the ComputeContext
+  ComputeArray particleParams;
+  ComputeArray pairParams;
 	
 	double scale_force;  // scale force parameter
   bool positions_changed = false;
