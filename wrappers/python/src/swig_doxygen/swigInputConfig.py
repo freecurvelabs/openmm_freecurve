@@ -412,6 +412,7 @@ UNITS = {
 ("ArrowForce", "addParticle") : (None, ()),
 ("ArrowForce", "getNumParticles") : (None, ()),
 ("ArrowForce", "posInternalChanged") : (None, ()),
+("ArrowForce", "getArbalestShiftVec") : ("unit.nanometer", ()),
 ("ArrowForce", "copyInternalPositionsToContext") : (None, ()),
 ("GBSAOBCForce", "addParticle") : (None, ("unit.elementary_charge", "unit.nanometer", None)),
 ("GBSAOBCForce", "getParticleParameters") : (None, ("unit.elementary_charge", "unit.nanometer", None)),

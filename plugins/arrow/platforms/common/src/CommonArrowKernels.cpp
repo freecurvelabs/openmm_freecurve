@@ -148,6 +148,17 @@ bool CommonCalcArrowForceKernel::copyCrdFromContextToArbalest(ContextImpl& conte
     return bRes;
 }
 
+OpenMM::Vec3 CommonCalcArrowForceKernel::getArbalestShiftVec() const
+{
+    OpenMM::Vec3 shift; // Arbalest environment shift vector for atoms in 
+    SimulationCore::VECVAL3D *pvecAtomShift = &pSysLdr->GetSimulationenvironment()->m_vecAtomShift;
+    shift[0] = VEC_X(pvecAtomShift[0]) * 0.1;
+    shift[1] = VEC_Y(pvecAtomShift[0]) * 0.1;
+    shift[2] = VEC_Z(pvecAtomShift[0]) * 0.1; // Convert to nanometers
+
+    return shift;
+}
+
 bool CommonCalcArrowForceKernel::saveInternalPositions( SimulationCore::CEnvironmentReplica* pEnvReplica, ContextImpl& context )
 {
     // printf("CommonCalcArrowForceKernel::copyCrdFromArbalestToContext() \n");

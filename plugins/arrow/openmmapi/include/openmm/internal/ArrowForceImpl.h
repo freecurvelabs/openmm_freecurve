@@ -44,6 +44,8 @@ public:
     bool usesPeriodicBoundaryConditions() const { return true; }
 
     bool posInternalChanged(ContextImpl& context); 
+    OpenMM::Vec3 getArbalestShiftVec() const;
+
     void copyInternalPositionsToContext(ContextImpl& context);
     
 private:

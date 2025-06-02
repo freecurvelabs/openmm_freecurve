@@ -66,6 +66,14 @@ public:
     */
     bool copyCrdFromContextToArbalest(ContextImpl& context, SimulationCore::CEnvironmentReplica* pEnvReplica);
 
+
+    /**
+      * Get Shift vector for Arbalest environment (nm)
+      *
+      * 
+    */
+    OpenMM::Vec3 getArbalestShiftVec() const;
+
     /**
       * Copy coordinates from Arbalest environment to OpenMM context.
       *

@@ -48,6 +48,12 @@ bool ArrowForce::posInternalChanged(Context& context)
     return res;
 }
 
+Vec3 ArrowForce::getArbalestShiftVec(Context& context) const
+{
+    Vec3 shift = dynamic_cast<ArrowForceImpl&>(getImplInContext(context)).getArbalestShiftVec();
+    return shift;
+}
+
 void ArrowForce::copyInternalPositionsToContext(Context& context)
 {
     dynamic_cast<ArrowForceImpl&>(getImplInContext(context)).copyInternalPositionsToContext(getContextImpl(context));

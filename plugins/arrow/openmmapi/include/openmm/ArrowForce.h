@@ -72,6 +72,12 @@ public:
      */
     bool posInternalChanged(Context& context);
 
+     /**
+     * Get Arbalest Coordinate Shift Vector (nm)  .
+     *
+     */
+    Vec3 getArbalestShiftVec(Context& context) const;
+
     /**
      * Copy internal positions to OpenMM context.
      *

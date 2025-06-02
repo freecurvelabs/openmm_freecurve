@@ -87,6 +87,11 @@ bool ArrowForceImpl::posInternalChanged(ContextImpl& context) {
     return res;
 }
 
+OpenMM::Vec3 ArrowForceImpl::getArbalestShiftVec() const {
+    OpenMM::Vec3 shift = kernel.getAs<CalcArrowForceKernel>().getArbalestShiftVec();
+    return shift;
+}
+
 void ArrowForceImpl::copyInternalPositionsToContext(ContextImpl& context)
 {
     kernel.getAs<CalcArrowForceKernel>().copyInternalPositionsToContext(context);
